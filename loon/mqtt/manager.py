@@ -66,7 +66,10 @@ class MQTTManager:
             logger.info(f"[Received] {data}.")
 
             for handler in self.handlers:
-                await handler(client, userdata, msg)
+                try:
+                    await handler(client, userdata, msg)
+                except Exception as e:
+                    logger.error(f'Got exception: {e}')
 
         asyncio.run_coroutine_threadsafe(handle_message(), self.loop)
 

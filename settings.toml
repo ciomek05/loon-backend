@@ -4,11 +4,19 @@ allowed_origins = ["http://localhost:5173"]
 [redis]
 enabled = false
 host = 'localhost'
+password = 'pwd'
 port = 6379
 expire_time = 600 # 10 minutes
 
 [database]
 url = 'sqlite:///db.sqlite3'
+echo = false
 
 [mqtt]
+host = 'mqtt.host'
 port = 1883
+username = 'loon'
+password = 'pwd'
+
+[jwt]
+secret = 'secret'

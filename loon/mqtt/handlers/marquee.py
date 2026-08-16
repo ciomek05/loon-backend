@@ -3,7 +3,7 @@ import random
 
 from loon.web.users.state import user_threads
 
-PLAYER_EVENT_SUFFIXES = ("died", "joined", "left")
+PLAYER_EVENT_SUFFIXES = ("died", "joined", "left", "kicked")
 
 DEATH_BY_DAMAGE = {
     "fall": (
@@ -79,7 +79,12 @@ async def marquee_handler(client, userdata, msg):
     except json.JSONDecodeError:
         return
 
-    username = data["player"]["username"]
+    player = data.get("player")
+    if not isinstance(player, dict):
+        return
+    username = player.get("username")
+    if not username:
+        return
 
     if subtopic == "died":
         killer = data.get("killer")
@@ -96,6 +101,9 @@ async def marquee_handler(client, userdata, msg):
             message = f"{username} died"
     elif subtopic == "joined":
         message = f"{username} joined the game"
+    elif subtopic == "kicked":
+        reason = data.get("reason")
+        message = f"{username} was kicked: {reason}" if reason else f"{username} was kicked"
     else:
         message = f"{username} left the game"
 

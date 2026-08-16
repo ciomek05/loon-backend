@@ -20,4 +20,4 @@ kwargs: dict = {}
 if url.startswith("sqlite"):
     kwargs["connect_args"] = {"check_same_thread": False}
 
-engine = create_engine(url, echo=True, **kwargs)
+engine = create_engine(url, echo=settings.database.echo, **kwargs)
