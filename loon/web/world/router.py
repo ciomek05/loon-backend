@@ -28,7 +28,7 @@ async def request_world(
         if wanted is not None:
             for x in range(x_start, x_end + 1):
                 for z in range(z_start, z_end + 1):
-                    wanted.update((x, z))
+                    wanted.add((x, z))
 
         get_mqtt_manager().publish(f"loon/world/chunks/{x_start}:{x_end}/{z_start}:{z_end}/request")
         return 200
@@ -54,7 +54,7 @@ async def request_world(
         if wanted is not None:
             for x in range(x_start, x_end + 1):
                 for z in range(z_start, z_end + 1):
-                    wanted.update((x, z))
+                    wanted.add((x, z))
 
         get_mqtt_manager().publish(f"loon/world/chunks/{x_start}:{x_end}/{z_start}:{z_end}/request")
         return 200
