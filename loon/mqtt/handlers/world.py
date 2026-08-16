@@ -5,7 +5,7 @@ import redis
 
 from config import settings
 from loon.redis.chunk import set_chunk_cache
-from loon.web.users.state import user_threads
+from loon.web.users.state import user_threads, user_world_requests
 
 
 async def world_handler(client, userdata, msg):
@@ -21,14 +21,19 @@ async def world_handler(client, userdata, msg):
     except json.JSONDecodeError:
         return
 
-    x, z = match.group(1), match.group(2)
+    x, z = int(match.group(1)), int(match.group(2))
     envelope = json.dumps({"topic": f"world/chunk/{x}/{z}", "payload": data})
+    coord = (x, z)
 
     if settings.redis.enabled:
         try:
-            set_chunk_cache(int(x), int(z), data)
+            set_chunk_cache(x, z, data)
         except redis.RedisError:
             pass
 
-    for queue in list(user_threads.values()):
+    for uuid, queue in list(user_threads.items()):
+        wanted = user_world_requests.get(uuid)
+        if not wanted or coord not in wanted:
+            continue
         await queue.put(envelope)
+        wanted.discard(coord)

@@ -7,7 +7,7 @@ from config import settings
 from loon.redis.chunk import get_chunk_cache, reset_chunk_cache
 from loon.web import get_mqtt_manager
 from loon.web.auth.middleware import authenticated
-from loon.web.users.state import user_threads
+from loon.web.users.state import user_threads, user_world_requests
 
 router = APIRouter(prefix="/world", tags=["world"])
 
@@ -21,12 +21,20 @@ async def request_world(
     z_start: int,
     z_end: int,
 ):
+    uuid = request.user.user.uuid
+    wanted = user_world_requests.get(uuid)
+
     if not settings.redis.enabled:
+        if wanted is not None:
+            for x in range(x_start, x_end + 1):
+                for z in range(z_start, z_end + 1):
+                    wanted.update((x, z))
+
         get_mqtt_manager().publish(f"loon/world/chunks/{x_start}:{x_end}/{z_start}:{z_end}/request")
         return 200
 
     misses = []
-    thread = user_threads.get(request.user.user.uuid)
+    thread = user_threads.get(uuid)
 
     try:
         for x in range(x_start, x_end + 1):
@@ -39,8 +47,15 @@ async def request_world(
                             json.dumps({"topic": f"world/chunk/{x}/{z}", "payload": cached_chunk})
                         )
                 else:
+                    if wanted is not None:
+                        wanted.add((x, z))
                     misses.append((x, z))
-    except redis.RedisError as e:
+    except redis.RedisError:
+        if wanted is not None:
+            for x in range(x_start, x_end + 1):
+                for z in range(z_start, z_end + 1):
+                    wanted.update((x, z))
+
         get_mqtt_manager().publish(f"loon/world/chunks/{x_start}:{x_end}/{z_start}:{z_end}/request")
         return 200
 

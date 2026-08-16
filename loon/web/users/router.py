@@ -6,7 +6,7 @@ from starlette.websockets import WebSocket, WebSocketDisconnect
 
 from loon.web import get_mqtt_manager
 from loon.web.auth.middleware import authenticated
-from loon.web.users.state import user_threads
+from loon.web.users.state import user_threads, user_world_requests
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -49,6 +49,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
     queue = asyncio.Queue()
     user_threads[user.uuid] = queue
+    user_world_requests[user.uuid] = set()
 
     try:
         while True:
@@ -58,3 +59,4 @@ async def websocket_endpoint(websocket: WebSocket):
         pass
     finally:
         user_threads.pop(user.uuid, None)
+        user_world_requests.pop(user.uuid, None)
