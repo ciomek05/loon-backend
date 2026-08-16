@@ -21,4 +21,3 @@ if url.startswith("sqlite"):
     kwargs["connect_args"] = {"check_same_thread": False}
 
 engine = create_engine(url, echo=True, **kwargs)
-SQLModel.metadata.create_all(engine)
