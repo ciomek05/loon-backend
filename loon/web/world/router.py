@@ -11,7 +11,7 @@ from loon.web.auth.middleware import authenticated
 from loon.web.users.state import user_threads, user_world_requests
 
 
-MAX_CHUNK_COUNT = 100
+MAX_CHUNK_COUNT = 100 # TODO: add limit per user requested chunks at once, not per request
 
 
 router = APIRouter(prefix="/world", tags=["world"])
@@ -27,7 +27,8 @@ async def request_world(
 ):
     chunk_count = (abs(x_end - x_start) + 1) * (abs(z_end - z_start) + 1)
     if chunk_count > MAX_CHUNK_COUNT:
-        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS)
+        raise HTTPException(status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+                            detail=f"The rectangle is too big. The limit is {MAX_CHUNK_COUNT} per request. ")
 
     uuid = request.user.user.uuid
     wanted = user_world_requests.get(uuid)
