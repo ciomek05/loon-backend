@@ -1,5 +1,6 @@
 import json
 
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from loon.web.db import engine
@@ -19,14 +20,20 @@ async def register_request_handler(client, userdata, msg, data):
         statement = select(User).where(User.uuid == uuid)
         user = session.exec(statement).first()
 
-    if user is not None:
-        client.publish(f"loon/register/{uuid}/response",
-                       json.dumps({"success": False, "error": "The user is already registered!"}))
-        return
+        if user is not None:
+            client.publish(f"loon/register/{uuid}/response",
+                           json.dumps({"success": False, "error": "The user is already registered!"}))
+            return
 
-    with Session(engine) as session:
         user = User(uuid=uuid, password=hash_password(password), internal_username=internal_username, admin=False)
         session.add(user)
-        session.commit()
+        try:
+            session.commit()
+        except IntegrityError:
+            session.rollback()
+            client.publish(f"loon/register/{uuid}/response",
+                           json.dumps({"success": False, "error": "The user is already registered!"}))
+
+            return
 
     client.publish(f"loon/register/{uuid}/response", json.dumps({"success": True, "error": None}))

@@ -1,5 +1,6 @@
 import json
 
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from loon.web.db import engine
@@ -18,16 +19,23 @@ async def change_password_handler(client, userdata, msg, data):
         statement = select(User).where(User.uuid == uuid)
         user = session.exec(statement).first()
 
-    if user is None:
-        client.publish(f"loon/register/{uuid}/response",
-                       json.dumps({"success": False, "error": "The user is not registered!"}))
-        return
+        if user is None:
+            client.publish(f"loon/register/{uuid}/response",
+                           json.dumps({"success": False, "error": "The user is not registered!"}))
+            return
 
-    with Session(engine) as session:
         user = session.exec(
             select(User).where(User.uuid == uuid)
         ).first()
         user.password = hash_password(password)
-        session.commit()
+
+        try:
+            session.commit()
+        except IntegrityError:
+            session.rollback()
+            client.publish(f"loon/register/{uuid}/response",
+                           json.dumps({"success": False, "error": "The user is not registered!"}))
+
+            return
 
     client.publish(f"loon/register/{uuid}/response", json.dumps({"success": True, "error": None}))
