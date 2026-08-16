@@ -1,0 +1,23 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to private registry
+        run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login registry.ciomek.pl/loonmc-backend:latest -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin
+
+      - name: Build Docker image
+        run: docker build -t registry.ciomek.pl/loonmc-backend:latest .
+
+      - name: Push Docker image
+        run: docker push registry.ciomek.pl/loonmc-backend:latest
