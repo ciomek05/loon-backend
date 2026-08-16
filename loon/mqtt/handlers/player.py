@@ -3,9 +3,7 @@ import json
 from loon.web.users.state import user_threads
 
 
-async def player_handler(client, userdata, msg):
-    data = json.loads(msg.payload.decode())
-
+async def player_handler(client, userdata, msg, data):
     prefix = "loon/player/"
 
     if not msg.topic.startswith(prefix):

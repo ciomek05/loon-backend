@@ -8,17 +8,12 @@ from loon.redis.chunk import set_chunk_cache
 from loon.web.users.state import user_threads, user_world_requests
 
 
-async def world_handler(client, userdata, msg):
+async def world_handler(client, userdata, msg, data):
     chunk_topic = re.compile(r"^loon/world/chunk/(-?\d+)/(-?\d+)$")
 
     match = chunk_topic.match(msg.topic)
 
     if not match:
-        return
-
-    try:
-        data = json.loads(msg.payload.decode())
-    except json.JSONDecodeError:
         return
 
     x, z = int(match.group(1)), int(match.group(2))

@@ -63,11 +63,12 @@ class MQTTManager:
             except json.decoder.JSONDecodeError:
                 return
 
-            logger.info(f"[Received] {data}.")
+            if settings.mqtt.log_data:
+                logger.info(f"[Received] {data}.")
 
             for handler in self.handlers:
                 try:
-                    await handler(client, userdata, msg)
+                    await handler(client, userdata, msg, data)
                 except Exception as e:
                     logger.error(f'Got exception: {e}')
 

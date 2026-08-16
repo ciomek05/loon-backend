@@ -17,6 +17,7 @@ host = 'mqtt.host'
 port = 1883
 username = 'loon'
 password = 'pwd'
+log_data = false
 
 [jwt]
 secret = 'secret'

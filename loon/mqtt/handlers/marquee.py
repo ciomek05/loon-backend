@@ -62,7 +62,7 @@ def get_random(templates, **kwargs):
     return random.choice(templates).format(**kwargs)
 
 
-async def marquee_handler(client, userdata, msg):
+async def marquee_handler(client, userdata, msg, data):
     prefix = "loon/player/"
 
     if not msg.topic.startswith(prefix):
@@ -72,11 +72,6 @@ async def marquee_handler(client, userdata, msg):
     _, _, subtopic = rest.partition("/")
 
     if subtopic not in PLAYER_EVENT_SUFFIXES:
-        return
-
-    try:
-        data = json.loads(msg.payload.decode())
-    except json.JSONDecodeError:
         return
 
     player = data.get("player")

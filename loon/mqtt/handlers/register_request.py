@@ -7,9 +7,7 @@ from loon.web.users.models import User
 from loon.web.utils.password import hash_password
 
 
-async def register_request_handler(client, userdata, msg):
-    data = json.loads(msg.payload.decode())
-
+async def register_request_handler(client, userdata, msg, data):
     if msg.topic != "loon/register/request":
         return
 

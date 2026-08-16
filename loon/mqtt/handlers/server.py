@@ -3,13 +3,8 @@ import json
 from loon.web.users.state import user_threads
 
 
-async def server_handler(client, userdata, msg):
+async def server_handler(client, userdata, msg, data):
     if msg.topic != "loon/server/info":
-        return
-
-    try:
-        data = json.loads(msg.payload.decode())
-    except json.JSONDecodeError:
         return
 
     envelope = json.dumps({"topic": "server/info", "payload": data})
