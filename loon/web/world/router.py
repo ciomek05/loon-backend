@@ -1,7 +1,8 @@
 import json
 
 import redis
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, HTTPException
+from starlette import status
 
 from config import settings
 from loon.redis.chunk import get_chunk_cache, reset_chunk_cache
@@ -9,8 +10,11 @@ from loon.web import get_mqtt_manager
 from loon.web.auth.middleware import authenticated
 from loon.web.users.state import user_threads, user_world_requests
 
-router = APIRouter(prefix="/world", tags=["world"])
 
+MAX_CHUNK_COUNT = 100
+
+
+router = APIRouter(prefix="/world", tags=["world"])
 
 @router.get("/request")
 @authenticated
@@ -21,6 +25,10 @@ async def request_world(
     z_start: int,
     z_end: int,
 ):
+    chunk_count = (abs(x_end - x_start) + 1) * (abs(z_end - z_start) + 1)
+    if chunk_count > MAX_CHUNK_COUNT:
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS)
+
     uuid = request.user.user.uuid
     wanted = user_world_requests.get(uuid)
 
