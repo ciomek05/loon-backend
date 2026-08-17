@@ -25,6 +25,14 @@ async def register_request_handler(client, userdata, msg, data):
                            json.dumps({"success": False, "error": "The user is already registered!"}))
             return
 
+        statement = select(User).where(User.internal_username == internal_username)
+        user = session.exec(statement).first()
+
+        if user is not None:
+            client.publish(f"loon/register/{uuid}/response",
+                           json.dumps({"success": False, "error": f"The {internal_username} is taken!"}))
+            return
+
         user = User(uuid=uuid, password=hash_password(password), internal_username=internal_username, admin=False)
         session.add(user)
         try:

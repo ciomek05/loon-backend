@@ -1,8 +1,8 @@
 """Users
 
-Revision ID: 493f3f7529f3
+Revision ID: 2df7e2c6af43
 Revises: 
-Create Date: 2026-08-16 11:22:34.176552
+Create Date: 2026-08-17 12:42:05.103510
 
 """
 from typing import Sequence, Union
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 import sqlmodel
 
 # revision identifiers, used by Alembic.
-revision: str = '493f3f7529f3'
+revision: str = '2df7e2c6af43'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -29,6 +29,7 @@ def upgrade() -> None:
     sa.Column('password', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('admin', sa.Boolean(), nullable=False),
     sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('internal_username'),
     sa.UniqueConstraint('uuid')
     )
     # ### end Alembic commands ###
