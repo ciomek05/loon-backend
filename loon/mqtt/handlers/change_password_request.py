@@ -5,7 +5,6 @@ from sqlmodel import Session, select
 
 from loon.web.db import engine
 from loon.web.users.models import User
-from loon.web.utils.password import hash_password
 
 
 async def change_password_handler(client, userdata, msg, data):
@@ -27,7 +26,7 @@ async def change_password_handler(client, userdata, msg, data):
         user = session.exec(
             select(User).where(User.uuid == uuid)
         ).first()
-        user.password = hash_password(password)
+        user.password = password
 
         try:
             session.commit()

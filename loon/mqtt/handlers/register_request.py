@@ -5,7 +5,6 @@ from sqlmodel import Session, select
 
 from loon.web.db import engine
 from loon.web.users.models import User
-from loon.web.utils.password import hash_password
 
 
 async def register_request_handler(client, userdata, msg, data):
@@ -33,7 +32,7 @@ async def register_request_handler(client, userdata, msg, data):
                            json.dumps({"success": False, "error": f"The {internal_username} is taken!"}))
             return
 
-        user = User(uuid=uuid, password=hash_password(password), internal_username=internal_username, admin=False)
+        user = User(uuid=uuid, password=password, internal_username=internal_username, admin=False)
         session.add(user)
         try:
             session.commit()
