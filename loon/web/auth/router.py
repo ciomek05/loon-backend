@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Request, status
 from sqlmodel import Session, select
 
+from loon.web import limiter
 from loon.web.auth.schema import JWTResponse, JWTRequest
 from loon.web.db import engine
 from loon.web.users.models import User
@@ -11,7 +12,8 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/jwt/", response_model=JWTResponse)
-async def get_jwt(body: JWTRequest) -> JWTResponse:
+@limiter.limit("5/minute")
+async def get_jwt(request: Request, body: JWTRequest) -> JWTResponse:
     with Session(engine) as session:
         statement = select(User).where(User.internal_username == body.username)
         user = session.exec(statement).first()

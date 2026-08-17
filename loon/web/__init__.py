@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.middleware.cors import CORSMiddleware
 
@@ -14,9 +16,14 @@ async def lifespan(app: FastAPI):
     app.state.mqtt_manager = MQTTManager.setup_and_start()
     yield
 
-docs_url = "docs" if settings.web.show_docs else None
+limiter = Limiter(key_func=lambda request: request.client.host)
+
+docs_url = "/docs" if settings.web.show_docs else None
 
 app = FastAPI(lifespan=lifespan, docs_url=docs_url)
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     AuthenticationMiddleware,
