@@ -1,5 +1,8 @@
 [web]
+host='0.0.0.0'
+port=8000
 allowed_origins = ["http://localhost:5173"]
+show_docs = true
 
 [redis]
 enabled = false

@@ -14,8 +14,9 @@ async def lifespan(app: FastAPI):
     app.state.mqtt_manager = MQTTManager.setup_and_start()
     yield
 
+docs_url = "docs" if settings.web.show_docs else None
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, docs_url=docs_url)
 
 app.add_middleware(
     AuthenticationMiddleware,
