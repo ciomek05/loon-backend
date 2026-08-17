@@ -8,10 +8,17 @@ from loon.web.users.models import User
 
 
 async def change_password_handler(client, userdata, msg, data):
-    if msg.topic != "loon/register/change_password":
+    prefix = "loon/auth/register/"
+
+    if not msg.topic.startswith(prefix):
         return
 
-    uuid = data["uuid"]
+    rest = msg.topic[len(prefix):]
+    uuid, _, subtopic = rest.partition("/")
+
+    if not uuid or subtopic != "change_password":
+        return
+
     password = data["password"]
 
     with Session(engine) as session:
@@ -19,7 +26,7 @@ async def change_password_handler(client, userdata, msg, data):
         user = session.exec(statement).first()
 
         if user is None:
-            client.publish(f"loon/register/{uuid}/response",
+            client.publish(f"loon/auth/register/{uuid}/response",
                            json.dumps({"success": False, "error": "The user is not registered!"}))
             return
 
@@ -32,9 +39,9 @@ async def change_password_handler(client, userdata, msg, data):
             session.commit()
         except IntegrityError:
             session.rollback()
-            client.publish(f"loon/register/{uuid}/response",
+            client.publish(f"loon/auth/register/{uuid}/response",
                            json.dumps({"success": False, "error": "The user is not registered!"}))
 
             return
 
-    client.publish(f"loon/register/{uuid}/response", json.dumps({"success": True, "error": None}))
+    client.publish(f"loon/auth/register/{uuid}/response", json.dumps({"success": True, "error": None}))

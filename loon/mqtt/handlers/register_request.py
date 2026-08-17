@@ -8,10 +8,17 @@ from loon.web.users.models import User
 
 
 async def register_request_handler(client, userdata, msg, data):
-    if msg.topic != "loon/register/request":
+    prefix = "loon/auth/register/"
+
+    if not msg.topic.startswith(prefix):
         return
 
-    uuid = data["uuid"]
+    rest = msg.topic[len(prefix):]
+    uuid, _, subtopic = rest.partition("/")
+
+    if not uuid or subtopic != "request":
+        return
+
     password = data["password"]
     internal_username = data["internalUsername"]
 
@@ -20,7 +27,7 @@ async def register_request_handler(client, userdata, msg, data):
         user = session.exec(statement).first()
 
         if user is not None:
-            client.publish(f"loon/register/{uuid}/response",
+            client.publish(f"loon/auth/register/{uuid}/response",
                            json.dumps({"success": False, "error": "The user is already registered!"}))
             return
 
@@ -28,7 +35,7 @@ async def register_request_handler(client, userdata, msg, data):
         user = session.exec(statement).first()
 
         if user is not None:
-            client.publish(f"loon/register/{uuid}/response",
+            client.publish(f"loon/auth/register/{uuid}/response",
                            json.dumps({"success": False, "error": f"The {internal_username} is taken!"}))
             return
 
@@ -38,9 +45,9 @@ async def register_request_handler(client, userdata, msg, data):
             session.commit()
         except IntegrityError:
             session.rollback()
-            client.publish(f"loon/register/{uuid}/response",
+            client.publish(f"loon/auth/register/{uuid}/response",
                            json.dumps({"success": False, "error": "The user is already registered!"}))
 
             return
 
-    client.publish(f"loon/register/{uuid}/response", json.dumps({"success": True, "error": None}))
+    client.publish(f"loon/auth/register/{uuid}/response", json.dumps({"success": True, "error": None}))
