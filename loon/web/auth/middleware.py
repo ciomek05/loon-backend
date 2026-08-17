@@ -34,9 +34,9 @@ class JWTAuthBackend(AuthenticationBackend):
             if scheme.lower() == "bearer" and credentials:
                 return credentials
 
-        # Browser WebSocket APIs cannot set Authorization headers.
-        token = conn.query_params.get("token")
-        return token or None
+        if conn.scope["type"] == "websocket":
+            return conn.query_params.get("token") or None
+        return None
 
     async def authenticate(
         self, conn: HTTPConnection
@@ -52,6 +52,13 @@ class JWTAuthBackend(AuthenticationBackend):
 
         user_id = payload.get("user_id")
         if not isinstance(user_id, int):
+            raise AuthenticationError("Invalid or expired token")
+
+        typ = payload.get("typ")
+        if conn.scope["type"] == "websocket":
+            if typ != "ws":
+                raise AuthenticationError("Invalid or expired token")
+        elif typ != "web":
             raise AuthenticationError("Invalid or expired token")
 
         with Session(engine) as session:
