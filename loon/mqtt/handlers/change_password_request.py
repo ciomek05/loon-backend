@@ -26,7 +26,7 @@ async def change_password_handler(client, userdata, msg, data):
         user = session.exec(statement).first()
 
         if user is None:
-            client.publish(f"loon/auth/register/{uuid}/response",
+            client.publish(f"loon/auth/change_password/{uuid}/response",
                            json.dumps({"success": False, "error": "The user is not registered!"}))
             return
 
@@ -39,9 +39,9 @@ async def change_password_handler(client, userdata, msg, data):
             session.commit()
         except IntegrityError:
             session.rollback()
-            client.publish(f"loon/auth/register/{uuid}/response",
+            client.publish(f"loon/auth/change_password/{uuid}/response",
                            json.dumps({"success": False, "error": "The user is not registered!"}))
 
             return
 
-    client.publish(f"loon/auth/register/{uuid}/response", json.dumps({"success": True, "error": None}))
+    client.publish(f"loon/auth/change_password/{uuid}/response", json.dumps({"success": True, "error": None}))
