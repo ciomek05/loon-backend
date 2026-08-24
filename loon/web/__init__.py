@@ -19,8 +19,15 @@ async def lifespan(app: FastAPI):
 limiter = Limiter(key_func=lambda request: request.client.host)
 
 docs_url = "/docs" if settings.web.show_docs else None
+redoc_url = "/redoc" if settings.web.show_docs else None
+openapi_url = "/openapi.json" if settings.web.show_docs else None
 
-app = FastAPI(lifespan=lifespan, docs_url=docs_url)
+app = FastAPI(
+    lifespan=lifespan,
+    docs_url=docs_url,
+    redoc_url=redoc_url,
+    openapi_url=openapi_url,
+)
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)

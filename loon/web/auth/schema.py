@@ -1,9 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class JWTRequest(BaseModel):
     username: str
-    password: str
+    password: str = Field(max_length=256)
 
 
 class JWTResponse(BaseModel):
