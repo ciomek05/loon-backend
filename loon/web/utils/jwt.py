@@ -27,5 +27,5 @@ def generate_ws_token(user_id: int) -> str:
 
 
 def decode_token(token: str) -> dict:
-    payload = jwt.decode(token, JWT_SECRET)
+    payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
     return payload
