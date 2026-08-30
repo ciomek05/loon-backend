@@ -1,12 +1,9 @@
-import asyncio
-import threading
-
 from fastapi import APIRouter, Request
 from starlette.websockets import WebSocket, WebSocketDisconnect
 
 from loon.web import get_mqtt_manager
 from loon.web.auth.middleware import authenticated
-from loon.web.users.state import user_threads, user_world_requests
+from loon.web.users.state import subscribe_player, get_user_messages, unsubscribe_player
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -47,16 +44,12 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     user = websocket.user.user
 
-    queue = asyncio.Queue()
-    user_threads[user.uuid] = queue
-    user_world_requests[user.uuid] = set()
+    subscribe_player(user)
 
     try:
-        while True:
-            message = await queue.get()
+        async for message in get_user_messages(user):
             await websocket.send_text(message)
     except WebSocketDisconnect:
         pass
     finally:
-        user_threads.pop(user.uuid, None)
-        user_world_requests.pop(user.uuid, None)
+        unsubscribe_player(user)
