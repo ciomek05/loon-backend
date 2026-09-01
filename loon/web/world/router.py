@@ -5,7 +5,7 @@ from fastapi import APIRouter, Request, HTTPException
 from starlette import status
 
 from config import settings
-from loon.redis.chunk import get_chunk_cache, reset_chunk_cache
+from loon.redis.chunk import get_chunks_cache, reset_chunk_cache
 from loon.web import get_mqtt_manager
 from loon.web.auth.middleware import authenticated
 from loon.web.users.state import user_threads, user_world_requests
@@ -45,28 +45,34 @@ async def request_world(
     misses = []
     thread = user_threads.get(uuid)
 
-    try:
-        for x in range(x_start, x_end + 1):
-            for z in range(z_start, z_end + 1):
-                cached_chunk = get_chunk_cache(x, z)
+    all_coords = [
+        (x, z)
+        for x in range(x_start, x_end + 1)
+        for z in range(z_start, z_end + 1)
+    ]
 
-                if cached_chunk is not None:
-                    if thread:
-                        await thread.put(
-                            json.dumps({"topic": f"world/chunk/{x}/{z}", "payload": cached_chunk})
-                        )
-                else:
-                    if wanted is not None:
-                        wanted.add((x, z))
-                    misses.append((x, z))
-    except redis.RedisError:
+    try:
+        hits = await get_chunks_cache(all_coords)
+    except redis.exceptions.RedisError:
         if wanted is not None:
-            for x in range(x_start, x_end + 1):
-                for z in range(z_start, z_end + 1):
-                    wanted.add((x, z))
+            wanted.update(all_coords)
 
         get_mqtt_manager().publish(f"loon/world/chunks/{x_start}:{x_end}/{z_start}:{z_end}/request")
         return 200
+
+    for coord in all_coords:
+        cached_chunk = hits.get(coord)
+
+        if cached_chunk is not None:
+            if thread:
+                x, z = coord
+                await thread.put(
+                    json.dumps({"topic": f"world/chunk/{x}/{z}", "payload": cached_chunk})
+                )
+        else:
+            if wanted is not None:
+                wanted.add(coord)
+            misses.append(coord)
 
     for xa, xb, za, zb in miss_row_rects(misses):
         get_mqtt_manager().publish(f"loon/world/chunks/{xa}:{xb}/{za}:{zb}/request")

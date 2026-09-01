@@ -1,4 +1,4 @@
-import redis
+import redis.asyncio as redis
 from redis.backoff import ExponentialBackoff
 from redis.exceptions import ConnectionError, TimeoutError
 from redis.retry import Retry

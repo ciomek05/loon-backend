@@ -22,7 +22,7 @@ async def world_handler(client, userdata, msg, data):
 
     if settings.redis.enabled:
         try:
-            set_chunk_cache(x, z, data)
+            await set_chunk_cache(x, z, data)
         except redis.RedisError:
             pass
 
