@@ -4,6 +4,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from loon.web.db import engine
+from loon.web.logs.service import write_log
+from loon.web.logs.types import LogTypeEnum
 from loon.web.users.models import User
 
 
@@ -34,6 +36,7 @@ async def change_password_handler(client, userdata, msg, data):
             select(User).where(User.uuid == uuid)
         ).first()
         user.password = password
+        internal_username = user.internal_username
 
         try:
             session.commit()
@@ -43,5 +46,7 @@ async def change_password_handler(client, userdata, msg, data):
                            json.dumps({"success": False, "error": "The user is not registered!"}))
 
             return
+
+    await write_log(LogTypeEnum.PLAYER_PASSWORD_CHANGED, f"Player {internal_username} ({uuid}) changed their password.")
 
     client.publish(f"loon/auth/change_password/{uuid}/response", json.dumps({"success": True, "error": None}))

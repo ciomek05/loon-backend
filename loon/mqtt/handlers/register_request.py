@@ -4,6 +4,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from loon.web.db import engine
+from loon.web.logs.service import write_log
+from loon.web.logs.types import LogTypeEnum
 from loon.web.users.models import User
 
 
@@ -49,5 +51,7 @@ async def register_request_handler(client, userdata, msg, data):
                            json.dumps({"success": False, "error": "The user is already registered!"}))
 
             return
+
+    await write_log(LogTypeEnum.PLAYER_REGISTERED, f"Player {internal_username} ({uuid}) registered.")
 
     client.publish(f"loon/auth/register/{uuid}/response", json.dumps({"success": True, "error": None}))
