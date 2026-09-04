@@ -1,8 +1,8 @@
 """init
 
-Revision ID: 0f809a005dc6
+Revision ID: 7efb7d0c39ae
 Revises: 
-Create Date: 2026-09-04 17:30:49.572225
+Create Date: 2026-09-04 23:50:22.513272
 
 """
 from typing import Sequence, Union
@@ -10,9 +10,8 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 
-
 # revision identifiers, used by Alembic.
-revision: str = '0f809a005dc6'
+revision: str = '7efb7d0c39ae'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -37,7 +36,7 @@ def upgrade() -> None:
     op.create_table('logentry',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('log_type_id', sa.Integer(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
     sa.Column('message', sa.String(), nullable=False),
     sa.ForeignKeyConstraint(['log_type_id'], ['logtype.id'], ),
     sa.PrimaryKeyConstraint('id')

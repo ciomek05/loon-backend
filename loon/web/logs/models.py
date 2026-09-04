@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import ForeignKey
+from sqlalchemy import DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from loon.web.db import Base
@@ -20,5 +20,5 @@ class LogEntry(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     log_type_id: Mapped[int] = mapped_column(ForeignKey("logtype.id"))
     log_type: Mapped[LogType] = relationship(back_populates="entries")
-    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     message: Mapped[str]
