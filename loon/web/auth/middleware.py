@@ -8,6 +8,7 @@ from starlette.authentication import (
 )
 from starlette.requests import HTTPConnection
 from starlette.responses import JSONResponse, Response
+from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select
 
 from loon.web.db import engine
@@ -62,7 +63,9 @@ class JWTAuthBackend(AuthenticationBackend):
             raise AuthenticationError("Invalid or expired token")
 
         with Session(engine) as session:
-            user = session.exec(select(User).where(User.id == user_id)).first()
+            user = session.exec(
+                select(User).where(User.id == user_id).options(selectinload(User.minecraft_user))
+            ).first()
 
         if user is None:
             raise AuthenticationError("User not found")

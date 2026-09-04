@@ -11,7 +11,11 @@ router = APIRouter(prefix="/users", tags=["users"])
 @router.get("/me")
 @authenticated
 async def me(request: Request):
-    return request.user.user.model_dump(exclude={"password", "id"})
+    user = request.user.user
+    return {
+        **user.model_dump(exclude={"password", "id", "minecraft_user_id"}),
+        "minecraft_user": user.minecraft_user.model_dump(exclude={"id"}),
+    }
 
 @router.post("/inventory/request")
 @authenticated

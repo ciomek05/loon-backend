@@ -6,7 +6,7 @@ from sqlmodel import Session, select
 from loon.web.db import engine
 from loon.web.logs.service import write_log
 from loon.web.logs.types import LogTypeEnum
-from loon.web.users.models import User
+from loon.web.users.models import MinecraftUser, User
 
 
 async def change_password_handler(client, userdata, msg, data):
@@ -24,7 +24,7 @@ async def change_password_handler(client, userdata, msg, data):
     password = data["password"]
 
     with Session(engine) as session:
-        statement = select(User).where(User.uuid == uuid)
+        statement = select(User).join(MinecraftUser).where(MinecraftUser.uuid == uuid)
         user = session.exec(statement).first()
 
         if user is None:
@@ -33,7 +33,7 @@ async def change_password_handler(client, userdata, msg, data):
             return
 
         user = session.exec(
-            select(User).where(User.uuid == uuid)
+            select(User).join(MinecraftUser).where(MinecraftUser.uuid == uuid)
         ).first()
         user.password = password
         internal_username = user.internal_username

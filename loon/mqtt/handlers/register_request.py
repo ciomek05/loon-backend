@@ -6,7 +6,8 @@ from sqlmodel import Session, select
 from loon.web.db import engine
 from loon.web.logs.service import write_log
 from loon.web.logs.types import LogTypeEnum
-from loon.web.users.models import User
+from loon.web.users.models import MinecraftUser, User
+from loon.web.users.service import sync_minecraft_users
 
 
 async def register_request_handler(client, userdata, msg, data):
@@ -23,9 +24,14 @@ async def register_request_handler(client, userdata, msg, data):
 
     password = data["password"]
     internal_username = data["internalUsername"]
+    username = data["username"]
+
+    await sync_minecraft_users([{"uuid": uuid, "username": username}])
 
     with Session(engine) as session:
-        statement = select(User).where(User.uuid == uuid)
+        minecraft_user = session.exec(select(MinecraftUser).where(MinecraftUser.uuid == uuid)).first()
+
+        statement = select(User).where(User.minecraft_user_id == minecraft_user.id)
         user = session.exec(statement).first()
 
         if user is not None:
@@ -41,7 +47,7 @@ async def register_request_handler(client, userdata, msg, data):
                            json.dumps({"success": False, "error": f"The {internal_username} is taken!"}))
             return
 
-        user = User(uuid=uuid, password=password, internal_username=internal_username, admin=False)
+        user = User(minecraft_user_id=minecraft_user.id, password=password, internal_username=internal_username, admin=False)
         session.add(user)
         try:
             session.commit()
