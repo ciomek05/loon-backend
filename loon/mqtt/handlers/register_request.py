@@ -7,7 +7,6 @@ from loon.web.db import engine
 from loon.web.logs.service import write_log
 from loon.web.logs.types import LogTypeEnum
 from loon.web.users.models import MinecraftUser, User
-from loon.web.users.service import sync_minecraft_users
 
 
 async def register_request_handler(client, userdata, msg, data):
@@ -24,12 +23,14 @@ async def register_request_handler(client, userdata, msg, data):
 
     password = data["password"]
     internal_username = data["internalUsername"]
-    username = data["username"]
-
-    await sync_minecraft_users([{"uuid": uuid, "username": username}])
 
     with Session(engine) as session:
         minecraft_user = session.exec(select(MinecraftUser).where(MinecraftUser.uuid == uuid)).first()
+
+        if minecraft_user is None:
+            client.publish(f"loon/auth/register/{uuid}/response",
+                           json.dumps({"success": False, "error": "Player not recognized yet, please rejoin the server and try again."}))
+            return
 
         statement = select(User).where(User.minecraft_user_id == minecraft_user.id)
         user = session.exec(statement).first()

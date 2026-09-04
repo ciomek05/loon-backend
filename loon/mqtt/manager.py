@@ -9,6 +9,7 @@ from loon import logger
 from loon.mqtt.handlers.change_password_request import change_password_handler
 from loon.mqtt.handlers.marquee import marquee_handler
 from loon.mqtt.handlers.player import player_handler
+from loon.mqtt.handlers.player_joined import player_joined_handler
 from loon.mqtt.handlers.players_sync import players_sync_handler
 from loon.mqtt.handlers.register_request import register_request_handler
 from loon.mqtt.handlers.server import server_handler
@@ -17,7 +18,7 @@ from loon.mqtt.handlers.world import world_handler
 
 
 class MQTTManager:
-    BASE_HANDLERS = [player_handler, register_request_handler, world_handler, server_handler, marquee_handler, change_password_handler, show_username_handler, players_sync_handler]
+    BASE_HANDLERS = [player_handler, register_request_handler, world_handler, server_handler, marquee_handler, change_password_handler, show_username_handler, players_sync_handler, player_joined_handler]
 
     def __init__(self, inject_handlers = None):
         if inject_handlers is None:

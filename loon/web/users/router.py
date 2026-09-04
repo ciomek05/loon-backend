@@ -3,19 +3,17 @@ from starlette.websockets import WebSocket, WebSocketDisconnect
 
 from loon.web import get_mqtt_manager
 from loon.web.auth.middleware import authenticated
+from loon.web.users.models import User
+from loon.web.users.schema import UserPublic
 from loon.web.users.state import subscribe_player, get_user_messages, unsubscribe_player
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.get("/me")
+@router.get("/me", response_model=UserPublic)
 @authenticated
-async def me(request: Request):
-    user = request.user.user
-    return {
-        **user.model_dump(exclude={"password", "id", "minecraft_user_id"}),
-        "minecraft_user": user.minecraft_user.model_dump(exclude={"id"}),
-    }
+async def me(request: Request) -> User:
+    return request.user.user
 
 @router.post("/inventory/request")
 @authenticated
