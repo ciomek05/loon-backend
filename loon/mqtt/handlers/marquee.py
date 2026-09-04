@@ -1,7 +1,7 @@
 import json
 import random
 
-from loon.web.logs.service import write_log
+from loon.web.logs.service import write_log, player_tag
 from loon.web.logs.types import LogTypeEnum
 from loon.web.users.state import user_threads
 
@@ -94,41 +94,41 @@ async def marquee_handler(client, userdata, msg, data):
             templates = DEATH_BY_KILLER.get(damage_type, DEATH_BY_KILLER_DEFAULT)
             message = get_random(templates, username=username, killer=killer)
 
-            await write_log(LogTypeEnum.PLAYER_DEAD, f"Player {username} ({uuid}) was killed by {killer}.")
+            await write_log(LogTypeEnum.PLAYER_DEAD, f"Player {player_tag(uuid, username)} was killed by {killer}.")
         elif damage_type in DEATH_BY_DAMAGE:
             message = get_random(DEATH_BY_DAMAGE[damage_type], username=username)
 
-            await write_log(LogTypeEnum.PLAYER_DEAD, f"Player {username} ({uuid}) died of {damage_type}.")
+            await write_log(LogTypeEnum.PLAYER_DEAD, f"Player {player_tag(uuid, username)} died of {damage_type}.")
         elif damage_type:
             message = f"{username} died of {damage_type}"
 
-            await write_log(LogTypeEnum.PLAYER_DEAD, f"Player {username} ({uuid}) died of {damage_type}.")
+            await write_log(LogTypeEnum.PLAYER_DEAD, f"Player {player_tag(uuid, username)} died of {damage_type}.")
         else:
             message = f"{username} died"
 
-            await write_log(LogTypeEnum.PLAYER_DEAD, f"Player {username} ({uuid}) died.")
+            await write_log(LogTypeEnum.PLAYER_DEAD, f"Player {player_tag(uuid, username)} died.")
     elif subtopic == "joined":
         message = f"{username} joined the game"
 
-        await write_log(LogTypeEnum.PLAYER_JOINED, f"Player {username} ({uuid}) joined the game.")
+        await write_log(LogTypeEnum.PLAYER_JOINED, f"Player {player_tag(uuid, username)} joined the game.")
     elif subtopic == "kicked":
         reason = data.get("reason")
 
         if reason == BAN_KICK_REASON:
             message = f"{username} was banned"
 
-            await write_log(LogTypeEnum.PLAYER_BANNED, f"Player {username} ({uuid}) was banned.")
+            await write_log(LogTypeEnum.PLAYER_BANNED, f"Player {player_tag(uuid, username)} was banned.")
         else:
             message = f"{username} was kicked: {reason}" if reason else f"{username} was kicked"
 
             await write_log(
                 LogTypeEnum.PLAYER_KICKED,
-                f"Player {username} ({uuid}) was kicked: {reason}." if reason else f"Player {username} ({uuid}) was kicked.",
+                f"Player {player_tag(uuid, username)} was kicked: {reason}." if reason else f"Player {player_tag(uuid, username)} was kicked.",
             )
     else:
         message = f"{username} left the game"
 
-        await write_log(LogTypeEnum.PLAYER_LEFT, f"Player {username} ({uuid}) left the game.")
+        await write_log(LogTypeEnum.PLAYER_LEFT, f"Player {player_tag(uuid, username)} left the game.")
 
     envelope = json.dumps({"topic": "server/marquee", "payload": {"message": message}})
 

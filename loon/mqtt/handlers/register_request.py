@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from loon.web.db import engine
-from loon.web.logs.service import write_log
+from loon.web.logs.service import write_log, player_tag
 from loon.web.logs.types import LogTypeEnum
 from loon.web.users.models import MinecraftUser, User
 
@@ -59,6 +59,6 @@ async def register_request_handler(client, userdata, msg, data):
 
             return
 
-    await write_log(LogTypeEnum.PLAYER_REGISTERED, f"Player {internal_username} ({uuid}) registered.")
+    await write_log(LogTypeEnum.PLAYER_REGISTERED, f"Player {player_tag(uuid, internal_username)} registered.")
 
     client.publish(f"loon/auth/register/{uuid}/response", json.dumps({"success": True, "error": None}))

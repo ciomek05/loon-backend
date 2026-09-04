@@ -7,6 +7,10 @@ from loon.web.logs.models import LogType, LogEntry
 from loon.web.logs.types import LogTypeEnum
 
 
+def player_tag(uuid: str, username: str) -> str:
+    return f"[player:{uuid}]{username}[/player]"
+
+
 def _write_log(log_type: LogTypeEnum, message: str) -> None:
     with Session(engine) as session:
         statement = select(LogType).where(LogType.code == log_type.value)
