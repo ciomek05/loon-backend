@@ -1,4 +1,5 @@
-from sqlmodel import Session, select
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from loon.web.db import engine
 from loon.web.users.models import User
@@ -6,9 +7,9 @@ from loon.web.users.models import User
 
 def choose_admin(username: str) -> None:
     with Session(engine) as session:
-        user = session.exec(
+        user = session.execute(
             select(User).where(User.internal_username == username)
-        ).first()
+        ).scalars().first()
 
         if user is None:
             print(f"No user named {username!r}.")

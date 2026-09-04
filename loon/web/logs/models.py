@@ -1,17 +1,24 @@
 from datetime import datetime, timezone
 
-from sqlmodel import SQLModel, Field, Relationship
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from loon.web.db import Base
 
 
-class LogType(SQLModel, table=True):
-    id: int = Field(default=None, primary_key=True)
-    code: str = Field(nullable=False, unique=True)
-    entries: list["LogEntry"] = Relationship(back_populates="log_type")
+class LogType(Base):
+    __tablename__ = "logtype"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    code: Mapped[str] = mapped_column(unique=True)
+    entries: Mapped[list["LogEntry"]] = relationship(back_populates="log_type")
 
 
-class LogEntry(SQLModel, table=True):
-    id: int = Field(default=None, primary_key=True)
-    log_type_id: int = Field(foreign_key="logtype.id", nullable=False)
-    log_type: LogType = Relationship(back_populates="entries")
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    message: str = Field(nullable=False)
+class LogEntry(Base):
+    __tablename__ = "logentry"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    log_type_id: Mapped[int] = mapped_column(ForeignKey("logtype.id"))
+    log_type: Mapped[LogType] = relationship(back_populates="entries")
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+    message: Mapped[str]

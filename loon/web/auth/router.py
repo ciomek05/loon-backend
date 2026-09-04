@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request, status
-from sqlmodel import Session, select
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from loon.web import limiter
 from loon.web.auth.middleware import authenticated
@@ -17,7 +18,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 async def get_jwt(request: Request, body: JWTRequest) -> JWTResponse:
     with Session(engine) as session:
         statement = select(User).where(User.internal_username == body.username)
-        user = session.exec(statement).first()
+        user = session.execute(statement).scalars().first()
 
         if user is None or user.id is None or not verify_password(body.password, user.password):
             raise HTTPException(

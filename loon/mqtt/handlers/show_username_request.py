@@ -1,6 +1,7 @@
 import json
 
-from sqlmodel import Session, select
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from loon.web.db import engine
 from loon.web.users.models import MinecraftUser, User
@@ -19,9 +20,9 @@ async def show_username_handler(client, userdata, msg, data):
         return
 
     with Session(engine) as session:
-        user = session.exec(
+        user = session.execute(
             select(User).join(MinecraftUser).where(MinecraftUser.uuid == uuid)
-        ).first()
+        ).scalars().first()
 
         if user is None:
             client.publish(f"loon/auth/show_username/{uuid}/response",

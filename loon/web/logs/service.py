@@ -1,6 +1,7 @@
 import asyncio
 
-from sqlmodel import Session, select
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from loon.web.db import engine
 from loon.web.logs.models import LogType, LogEntry
@@ -14,7 +15,7 @@ def player_tag(uuid: str, username: str) -> str:
 def _write_log(log_type: LogTypeEnum, message: str) -> None:
     with Session(engine) as session:
         statement = select(LogType).where(LogType.code == log_type.value)
-        log_type_object = session.exec(statement).first()
+        log_type_object = session.execute(statement).scalars().first()
 
         if not log_type_object:
             log_type_object = LogType(code=log_type.value)

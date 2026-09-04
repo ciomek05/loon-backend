@@ -1,7 +1,8 @@
 import json
 
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session, select
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from loon.web.db import engine
 from loon.web.logs.service import write_log, player_tag
@@ -25,16 +26,16 @@ async def change_password_handler(client, userdata, msg, data):
 
     with Session(engine) as session:
         statement = select(User).join(MinecraftUser).where(MinecraftUser.uuid == uuid)
-        user = session.exec(statement).first()
+        user = session.execute(statement).scalars().first()
 
         if user is None:
             client.publish(f"loon/auth/change_password/{uuid}/response",
                            json.dumps({"success": False, "error": "The user is not registered!"}))
             return
 
-        user = session.exec(
+        user = session.execute(
             select(User).join(MinecraftUser).where(MinecraftUser.uuid == uuid)
-        ).first()
+        ).scalars().first()
         user.password = password
         internal_username = user.internal_username
 

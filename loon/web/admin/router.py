@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from sqlalchemy.orm import selectinload
-from sqlmodel import Session, select
+from sqlalchemy.orm import selectinload, Session
+from sqlalchemy import select
 from starlette.requests import Request
 
 from loon.web.auth.middleware import admin
@@ -22,7 +22,7 @@ async def list_logs(request: Request):
             .options(selectinload(LogEntry.log_type))
             .order_by(LogEntry.created_at)
         )
-        entries = session.exec(statement).all()
+        entries = session.execute(statement).scalars().all()
         return [
             LogEntryResponse(
                 id=entry.id,
@@ -39,7 +39,7 @@ async def list_logs(request: Request):
 async def list_mc_users(request: Request):
     with Session(engine) as session:
         statement = select(MinecraftUser).order_by(MinecraftUser.username)
-        return session.exec(statement).all()
+        return session.execute(statement).scalars().all()
 
 
 @router.get("/users", response_model=list[UserPublic])
@@ -51,7 +51,7 @@ async def list_users(request: Request):
             .options(selectinload(User.minecraft_user))
             .order_by(User.internal_username)
         )
-        return session.exec(statement).all()
+        return session.execute(statement).scalars().all()
 
 
 @router.get("/users/{internal_username}", response_model=UserPublic)
@@ -63,7 +63,7 @@ async def get_user(request: Request, internal_username: str):
             .where(User.internal_username == internal_username)
             .options(selectinload(User.minecraft_user))
         )
-        user = session.exec(statement).first()
+        user = session.execute(statement).scalars().first()
         if user is None:
             raise HTTPException(status_code=404)
         return user
@@ -79,7 +79,7 @@ async def get_user_by_uuid(request: Request, uuid: str):
             .where(MinecraftUser.uuid == uuid)
             .options(selectinload(User.minecraft_user))
         )
-        user = session.exec(statement).first()
+        user = session.execute(statement).scalars().first()
         if user is None:
             raise HTTPException(status_code=404)
         return user

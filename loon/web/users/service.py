@@ -1,6 +1,7 @@
 import asyncio
 
-from sqlmodel import Session, select
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from loon.web.db import engine
 from loon.web.users.models import MinecraftUser
@@ -10,9 +11,9 @@ def _sync_minecraft_users(players: list[dict]) -> list[MinecraftUser]:
     players_by_uuid = {player["uuid"]: player["username"] for player in players}
 
     with Session(engine) as session:
-        existing = session.exec(
+        existing = session.execute(
             select(MinecraftUser).where(MinecraftUser.uuid.in_(players_by_uuid))
-        ).all()
+        ).scalars().all()
         existing_by_uuid = {minecraft_user.uuid: minecraft_user for minecraft_user in existing}
 
         new_users = []

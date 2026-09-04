@@ -1,7 +1,8 @@
 import json
 
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session, select
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from loon.web.db import engine
 from loon.web.logs.service import write_log, player_tag
@@ -25,7 +26,7 @@ async def register_request_handler(client, userdata, msg, data):
     internal_username = data["internalUsername"]
 
     with Session(engine) as session:
-        minecraft_user = session.exec(select(MinecraftUser).where(MinecraftUser.uuid == uuid)).first()
+        minecraft_user = session.execute(select(MinecraftUser).where(MinecraftUser.uuid == uuid)).scalars().first()
 
         if minecraft_user is None:
             client.publish(f"loon/auth/register/{uuid}/response",
@@ -33,7 +34,7 @@ async def register_request_handler(client, userdata, msg, data):
             return
 
         statement = select(User).where(User.minecraft_user_id == minecraft_user.id)
-        user = session.exec(statement).first()
+        user = session.execute(statement).scalars().first()
 
         if user is not None:
             client.publish(f"loon/auth/register/{uuid}/response",
@@ -41,7 +42,7 @@ async def register_request_handler(client, userdata, msg, data):
             return
 
         statement = select(User).where(User.internal_username == internal_username)
-        user = session.exec(statement).first()
+        user = session.execute(statement).scalars().first()
 
         if user is not None:
             client.publish(f"loon/auth/register/{uuid}/response",

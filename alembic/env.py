@@ -4,9 +4,8 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
-from sqlmodel import SQLModel
 
-from loon.web.db import database_url
+from loon.web.db import Base, database_url
 
 import loon.web
 
@@ -23,7 +22,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = SQLModel.metadata
+target_metadata = Base.metadata
 
 config.set_main_option("sqlalchemy.url", database_url())
 
