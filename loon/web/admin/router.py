@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select
 from starlette.requests import Request
@@ -52,3 +52,34 @@ async def list_users(request: Request):
             .order_by(User.internal_username)
         )
         return session.exec(statement).all()
+
+
+@router.get("/users/{internal_username}", response_model=UserPublic)
+@admin
+async def get_user(request: Request, internal_username: str):
+    with Session(engine) as session:
+        statement = (
+            select(User)
+            .where(User.internal_username == internal_username)
+            .options(selectinload(User.minecraft_user))
+        )
+        user = session.exec(statement).first()
+        if user is None:
+            raise HTTPException(status_code=404)
+        return user
+
+
+@router.get("/users/by-uuid/{uuid}", response_model=UserPublic)
+@admin
+async def get_user_by_uuid(request: Request, uuid: str):
+    with Session(engine) as session:
+        statement = (
+            select(User)
+            .join(MinecraftUser)
+            .where(MinecraftUser.uuid == uuid)
+            .options(selectinload(User.minecraft_user))
+        )
+        user = session.exec(statement).first()
+        if user is None:
+            raise HTTPException(status_code=404)
+        return user
